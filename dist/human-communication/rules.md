@@ -1,0 +1,1 @@
+# Comunicación agente → humano: Reglas específicas de producto

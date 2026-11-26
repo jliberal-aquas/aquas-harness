@@ -4,6 +4,6 @@ Fuente del arnés de governanza de Silicon Saint. Ha sido creado por la divisió
 
 # Lee las reglas de las fuentes canónicas
  
-@canon/human-communication/rules.md
-@canon/insights/rules.md
-@canon/governance-directives/rules.md
+@dist/human-communication/rules.md
+@dist/insights/rules.md
+@dist/governance-directives/rules.md
