@@ -5,6 +5,6 @@
   "shell": "powershell",
   "root": "D:/Sillicon Saint/AQUAS/Projects/aquas-harness",
   "product": "D:/Sillicon Saint/AQUAS/Projects/aquas-harness/product",
-  "harness": "claude-code",
+  "harness": ["claude-code"],
   "installed_at": "2026-11-22T16:25:00Z"
 }
