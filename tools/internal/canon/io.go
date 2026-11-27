@@ -49,6 +49,17 @@ func decodeObject(data []byte) (map[string]any, error) {
 	return obj, nil
 }
 
+// decodeHarness lee la lista «harness» de la configuración. Ignora el resto de claves.
+func decodeHarness(data []byte) ([]string, error) {
+	var s struct {
+		Harness []string `json:"harness"`
+	}
+	if err := json.Unmarshal(data, &s); err != nil {
+		return nil, err
+	}
+	return s.Harness, nil
+}
+
 // encodeObject escribe JSON con claves ordenadas y sangría de dos espacios,
 // para que la misma entrada produzca siempre los mismos bytes.
 func encodeObject(v map[string]any) ([]byte, error) {

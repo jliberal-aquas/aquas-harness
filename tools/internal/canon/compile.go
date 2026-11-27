@@ -1,5 +1,5 @@
-// Package canon compila las reglas canónicas del arnés: une cada archivo
-// de gobierno con su par de producto y escribe el resultado en dist.
+// Package canon compila las reglas canónicas, la configuración y las skills
+// de cada capa (gobierno, producto) y las escribe donde las lee cada arnés.
 package canon
 
 import (
@@ -27,13 +27,41 @@ var layers = []layer{
 	{name: "product", dir: ".product-governance"},
 }
 
-// sections asocia cada subcarpeta de una capa con su destino dentro de dist.
-var sections = []struct{ src, dst string }{
-	{src: "canon", dst: "."},
-	{src: "config", dst: "config"},
+// kind es el tipo de contenido. Cada arnés decide en qué carpeta va cada tipo.
+type kind string
+
+const (
+	kindRules  kind = "rules"
+	kindConfig kind = "config"
+	kindSkills kind = "skills"
+)
+
+// sections asocia cada subcarpeta de una capa con el tipo que aporta.
+// merge = true une los aportes de todas las capas; merge = false copia el
+// archivo tal cual y exige que una sola capa lo traiga (una skill no se
+// puede pegar con otra sin romper su cabecera).
+var sections = []struct {
+	src   string
+	kind  kind
+	merge bool
+}{
+	{src: "canon", kind: kindRules, merge: true},
+	{src: "config", kind: kindConfig, merge: true},
+	{src: "skills", kind: kindSkills, merge: false},
 }
 
-const distDir = "dist"
+// harnesses dice, por cada arnés soportado, en qué carpeta de la raíz va cada
+// tipo. Soportar otro arnés es agregar una fila aquí; la lógica no cambia.
+var harnesses = map[string]map[kind]string{
+	"claude-code": {
+		kindRules:  ".claude/rules",
+		kindSkills: ".claude/skills",
+		kindConfig: ".claude/aquas",
+	},
+}
+
+// settingsKey es el archivo de configuración, ya unido, que declara los arneses.
+const settingsKey = string(kindConfig) + "/settings.json"
 
 // bom es la marca de orden de bytes UTF-8 que agregan algunos editores de Windows.
 var bom = []byte("\xEF\xBB\xBF")
@@ -45,14 +73,20 @@ type part struct {
 	data  []byte
 }
 
-// output es un archivo de dist con sus aportes en orden jerárquico.
+// output es un archivo compilado con sus aportes en orden jerárquico.
 type output struct {
-	dst   string // ruta relativa a dist, con «/»
+	kind  kind
+	rel   string // ruta dentro de la carpeta del tipo, con «/»
+	merge bool
 	parts []part
 }
 
-// Run compila todas las capas en dist. Con check no escribe nada.
-// Devuelve stale = true si algún archivo de dist no coincide con lo compilado.
+// key identifica el archivo sin depender del arnés: «<tipo>/<rel>».
+func (o *output) key() string { return path.Join(string(o.kind), o.rel) }
+
+// Run compila todas las capas para cada arnés declarado en la configuración.
+// Con check no escribe nada. Devuelve stale = true si algún archivo del arnés
+// no coincide con lo compilado. Si algo no compila, no escribe ningún archivo.
 func Run(rootPath string, check bool, w io.Writer) (stale bool, err error) {
 	root, err := os.OpenRoot(rootPath)
 	if err != nil {
@@ -67,17 +101,34 @@ func Run(rootPath string, check bool, w io.Writer) (stale bool, err error) {
 	if len(outs) == 0 {
 		return false, fmt.Errorf("no encontré archivos en %q: revisa -root", rootPath)
 	}
+	built, err := buildAll(outs)
+	if err != nil {
+		return false, err
+	}
+	names, err := harnessNames(built[settingsKey])
+	if err != nil {
+		return false, err
+	}
 
 	var errs []error
-	for _, dst := range slices.Sorted(maps.Keys(outs)) {
-		o := outs[dst]
-		target := path.Join(distDir, dst)
+	for _, name := range names {
+		s, err := sync(root, harnesses[name], outs, built, check, w)
+		stale = stale || s
+		errs = append(errs, err)
+	}
+	return stale, errors.Join(errs...)
+}
 
-		want, err := o.build()
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
+// sync deja las carpetas de un arnés iguales a lo compilado y avisa de los huérfanos.
+func sync(root *os.Root, dirs map[kind]string, outs map[string]*output, built map[string][]byte, check bool, w io.Writer) (stale bool, err error) {
+	var errs []error
+	owned := map[string]bool{}
+	for _, k := range slices.Sorted(maps.Keys(outs)) {
+		o := outs[k]
+		target := path.Join(dirs[o.kind], o.rel)
+		owned[target] = true
+		want := built[k]
+
 		have, err := readFile(root, target)
 		switch {
 		case err == nil && bytes.Equal(have, want):
@@ -100,13 +151,13 @@ func Run(rootPath string, check bool, w io.Writer) (stale bool, err error) {
 		fmt.Fprintf(w, "escrito         %s  (%s)\n", target, o.layerNames())
 	}
 
-	for _, orphan := range orphans(root, outs) {
+	for _, orphan := range orphans(root, dirs, owned) {
 		fmt.Fprintf(w, "aviso: %s no viene de ninguna capa; revísalo o bórralo\n", orphan)
 	}
 	return stale, errors.Join(errs...)
 }
 
-// collect recorre las capas en orden jerárquico y agrupa los archivos por destino.
+// collect recorre las capas en orden jerárquico y agrupa los archivos por clave.
 func collect(root *os.Root) (map[string]*output, error) {
 	outs := map[string]*output{}
 	for _, l := range layers {
@@ -126,12 +177,11 @@ func collect(root *os.Root) (map[string]*output, error) {
 				if err != nil {
 					return err
 				}
-				rel := strings.TrimPrefix(p, base+"/")
-				dst := path.Join(s.dst, rel)
-				o := outs[dst]
-				if o == nil {
-					o = &output{dst: dst}
-					outs[dst] = o
+				o := &output{kind: s.kind, rel: strings.TrimPrefix(p, base+"/"), merge: s.merge}
+				if prev, ok := outs[o.key()]; ok {
+					o = prev
+				} else {
+					outs[o.key()] = o
 				}
 				o.parts = append(o.parts, part{layer: l.name, src: p, data: data})
 				return nil
@@ -144,9 +194,30 @@ func collect(root *os.Root) (map[string]*output, error) {
 	return outs, nil
 }
 
-// build combina los aportes según el tipo de archivo.
+// buildAll compila todos los archivos. Reúne todos los errores para mostrarlos juntos.
+func buildAll(outs map[string]*output) (map[string][]byte, error) {
+	built := make(map[string][]byte, len(outs))
+	var errs []error
+	for _, k := range slices.Sorted(maps.Keys(outs)) {
+		data, err := outs[k].build()
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		built[k] = data
+	}
+	return built, errors.Join(errs...)
+}
+
+// build combina los aportes según la sección y el tipo de archivo.
 func (o *output) build() ([]byte, error) {
-	switch path.Ext(o.dst) {
+	if !o.merge {
+		if len(o.parts) > 1 {
+			return nil, fmt.Errorf("%s viene de varias capas (%s): debe existir en una sola", o.key(), o.layerNames())
+		}
+		return o.parts[0].data, nil
+	}
+	switch path.Ext(o.rel) {
 	case ".md", ".txt":
 		return concatText(o), nil
 	case ".json":
@@ -155,7 +226,7 @@ func (o *output) build() ([]byte, error) {
 	if len(o.parts) == 1 {
 		return o.parts[0].data, nil
 	}
-	return nil, fmt.Errorf("%s: no sé combinar archivos %q de varias capas", o.dst, path.Ext(o.dst))
+	return nil, fmt.Errorf("%s: no sé combinar archivos %q de varias capas", o.key(), path.Ext(o.rel))
 }
 
 func (o *output) layerNames() string {
@@ -166,11 +237,33 @@ func (o *output) layerNames() string {
 	return strings.Join(names, " + ")
 }
 
+// harnessNames lee la lista «harness» de la configuración unida y comprueba
+// que cada arnés tenga destino. Un arnés desconocido es error, no se salta.
+func harnessNames(settings []byte) ([]string, error) {
+	if settings == nil {
+		return nil, fmt.Errorf("falta %s en las capas: ahí se declaran los arneses", settingsKey)
+	}
+	names, err := decodeHarness(settings)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", settingsKey, err)
+	}
+	if len(names) == 0 {
+		return nil, fmt.Errorf("%s no declara ningún arnés en «harness»", settingsKey)
+	}
+	for _, n := range names {
+		if _, ok := harnesses[n]; !ok {
+			return nil, fmt.Errorf("%s: el arnés %q no está soportado (soportados: %s)",
+				settingsKey, n, strings.Join(slices.Sorted(maps.Keys(harnesses)), ", "))
+		}
+	}
+	return names, nil
+}
+
 // concatText une los textos en orden jerárquico, separados por una línea en blanco.
 // En Markdown agrega un comentario que indica las fuentes y avisa que no se edite.
 func concatText(o *output) []byte {
 	var b bytes.Buffer
-	if path.Ext(o.dst) == ".md" {
+	if path.Ext(o.rel) == ".md" {
 		srcs := make([]string, len(o.parts))
 		for i, p := range o.parts {
 			srcs[i] = p.src
@@ -229,17 +322,21 @@ func deepMerge(dst, src map[string]any) {
 	}
 }
 
-// orphans lista archivos de dist que ninguna capa produce. No los borra.
-func orphans(root *os.Root, outs map[string]*output) []string {
+// orphans lista archivos de las carpetas del arnés que ninguna capa produce.
+// Solo mira esas carpetas: el resto del arnés (por ejemplo .claude/settings.json)
+// no es del compilador. No borra nada.
+func orphans(root *os.Root, dirs map[kind]string, owned map[string]bool) []string {
 	var found []string
-	_ = fs.WalkDir(root.FS(), distDir, func(p string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
+	for _, dir := range slices.Sorted(maps.Values(dirs)) {
+		_ = fs.WalkDir(root.FS(), dir, func(p string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() { // carpeta ausente o ilegible: no hay huérfanos que avisar
+				return nil
+			}
+			if !owned[p] {
+				found = append(found, p)
+			}
 			return nil
-		}
-		if _, ok := outs[strings.TrimPrefix(p, distDir+"/")]; !ok {
-			found = append(found, p)
-		}
-		return nil
-	})
+		})
+	}
 	return found
 }
