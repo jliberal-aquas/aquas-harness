@@ -24,6 +24,7 @@ import (
 	"aquas-tools/tools/internal/canon"
 )
 
+// main lee las opciones, ejecuta canon.Run y traduce el resultado a código de salida.
 func main() {
 	root := flag.String("root", ".", "carpeta raíz del arnés (contiene .aquas-governance y .product-governance)")
 	check := flag.Bool("check", false, "solo verifica que el arnés esté al día; no escribe nada y sale con código 1 si hay diferencias")

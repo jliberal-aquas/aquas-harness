@@ -37,7 +37,7 @@ Fuentes: go.dev/doc/modules/layout · go.dev/wiki/CodeReviewComments · google.g
 - No repetir el nombre del paquete en sus identificadores: `canon.Run`, no `canon.CanonRun`.
 - Mayúscula = público. Exportar solo lo que otro paquete usa hoy.
 - Sin getters ni setters vacíos: el campo se usa directo, o la función se llama `X()`, no `GetX()`.
-- Identificadores en inglés, salvo los nombres de prueba, que describen la conducta en castellano.
+- Identificadores en inglés, sin excepción: también funciones de prueba (`TestUnknownHarnessFails`) y ayudantes.
 
 ## Arquitectura
 - El núcleo decide con datos en memoria; el disco, la red y la terminal quedan en el borde (archivo `io.go` o paquete propio). Así el núcleo se prueba sin archivos.
@@ -74,6 +74,7 @@ Fuentes: go.dev/doc/modules/layout · go.dev/wiki/CodeReviewComments · google.g
 ## Documentación
 - Todo paquete tiene comentario `// Package x ...` que dice qué resuelve.
 - Todo identificador exportado tiene comentario que empieza con su nombre.
+- Toda función y método (exportado o no, `main` y pruebas incluidos) tiene encima un comentario de máximo 2 líneas que dice qué hace.
 - Comentar el porqué de lo no obvio (una protección, un límite, una decisión). No narrar lo que el código ya dice.
 - Comentarios y mensajes al humano en castellano.
 

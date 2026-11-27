@@ -11,12 +11,13 @@ import (
 // Toda operación de disco pasa por os.Root: ninguna ruta, enlace simbólico
 // ni «..» puede leer o escribir fuera de la carpeta raíz.
 
+// readFile lee un archivo dentro de la raíz.
 func readFile(root *os.Root, name string) ([]byte, error) {
 	return root.ReadFile(name)
 }
 
-// writeFileAtomic escribe en un archivo temporal y lo renombra,
-// para que dist nunca quede con un archivo a medio escribir.
+// writeFileAtomic escribe en un temporal y lo renombra, para que el arnés
+// nunca quede con un archivo a medio escribir.
 func writeFileAtomic(root *os.Root, name string, data []byte) error {
 	if err := root.MkdirAll(path.Dir(name), 0o755); err != nil {
 		return err
@@ -32,9 +33,8 @@ func writeFileAtomic(root *os.Root, name string, data []byte) error {
 	return nil
 }
 
-// decodeObject lee un objeto JSON. Un archivo vacío cuenta como objeto vacío.
-// encoding/json/v2 rechaza claves duplicadas, así que un error de tipeo no
-// se pierde en silencio.
+// decodeObject lee un objeto JSON; vacío o null cuenta como objeto vacío.
+// json/v2 rechaza claves duplicadas, así que un error de tipeo no pasa en silencio.
 func decodeObject(data []byte) (map[string]any, error) {
 	obj := map[string]any{}
 	if len(bytes.TrimSpace(data)) == 0 {

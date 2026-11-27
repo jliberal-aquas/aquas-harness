@@ -33,6 +33,7 @@ func tree(t *testing.T, files map[string]string) string {
 	return dir
 }
 
+// read devuelve el contenido de un archivo bajo dir; falla la prueba si no existe.
 func read(t *testing.T, dir, name string) string {
 	t.Helper()
 	b, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(name)))
@@ -52,7 +53,9 @@ func run(t *testing.T, dir string) string {
 	return out.String()
 }
 
-func TestMarkdownGobiernoAntesQueProducto(t *testing.T) {
+// TestMarkdownGovernanceBeforeProduct comprueba que gobierno va antes que producto,
+// con la cabecera de archivo generado y una línea en blanco entre capas.
+func TestMarkdownGovernanceBeforeProduct(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".aquas-governance/canon/human-communication/rules.md":   "# Gobierno\nregla G\n",
 		".product-governance/canon/human-communication/rules.md": "# Producto\nregla P\n",
@@ -71,7 +74,8 @@ func TestMarkdownGobiernoAntesQueProducto(t *testing.T) {
 	}
 }
 
-func TestArchivoEnUnaSolaCapaSeCopia(t *testing.T) {
+// TestSingleLayerFileIsCopied comprueba que un archivo presente en una sola capa llega al arnés.
+func TestSingleLayerFileIsCopied(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".product-governance/canon/insights/rules.md": "solo producto",
 	})
@@ -81,7 +85,8 @@ func TestArchivoEnUnaSolaCapaSeCopia(t *testing.T) {
 	}
 }
 
-func TestBOMyCRLFSeNormalizan(t *testing.T) {
+// TestBOMAndCRLFAreNormalized comprueba que la unión de Markdown quita el BOM y los saltos CRLF.
+func TestBOMAndCRLFAreNormalized(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".aquas-governance/canon/x/rules.md":   "\xEF\xBB\xBFlínea 1\r\nlínea 2\r\n",
 		".product-governance/canon/x/rules.md": "\xEF\xBB\xBFlínea 3\r\n",
@@ -93,7 +98,8 @@ func TestBOMyCRLFSeNormalizan(t *testing.T) {
 	}
 }
 
-func TestSkillSeCopiaIntacta(t *testing.T) {
+// TestSkillIsCopiedVerbatim comprueba que las skills se copian byte a byte, con sus archivos internos.
+func TestSkillIsCopiedVerbatim(t *testing.T) {
 	skill := "---\nname: go\n---\n\n# Go\r\n"
 	dir := tree(t, map[string]string{
 		".aquas-governance/skills/go/SKILL.md":       skill,
@@ -112,7 +118,8 @@ func TestSkillSeCopiaIntacta(t *testing.T) {
 	}
 }
 
-func TestSkillRepetidaEnDosCapasFalla(t *testing.T) {
+// TestDuplicateSkillAcrossLayersFails comprueba que una skill con el mismo nombre en dos capas da error.
+func TestDuplicateSkillAcrossLayersFails(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".aquas-governance/skills/go/SKILL.md":   "gob",
 		".product-governance/skills/go/SKILL.md": "prod",
@@ -123,7 +130,8 @@ func TestSkillRepetidaEnDosCapasFalla(t *testing.T) {
 	}
 }
 
-func TestConfigVaALaCarpetaAquasDelArnes(t *testing.T) {
+// TestConfigGoesToHarnessAquasDir comprueba que la configuración unida se escribe en .claude/aquas.
+func TestConfigGoesToHarnessAquasDir(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".aquas-governance/canon/x/rules.md": "G",
 	})
@@ -133,7 +141,8 @@ func TestConfigVaALaCarpetaAquasDelArnes(t *testing.T) {
 	}
 }
 
-func TestArnesDesconocidoFalla(t *testing.T) {
+// TestUnknownHarnessFails comprueba que un arnés sin destino en la tabla da error con su nombre.
+func TestUnknownHarnessFails(t *testing.T) {
 	dir := tree(t, map[string]string{
 		govSettings: `{"harness": ["claude-code", "inventado"]}`,
 	})
@@ -143,7 +152,8 @@ func TestArnesDesconocidoFalla(t *testing.T) {
 	}
 }
 
-func TestSinArnesFalla(t *testing.T) {
+// TestMissingHarnessFails comprueba que una configuración sin «harness» da error.
+func TestMissingHarnessFails(t *testing.T) {
 	dir := tree(t, map[string]string{
 		govSettings:                          `{"os": "windows"}`,
 		".aquas-governance/canon/x/rules.md": "G",
@@ -153,7 +163,8 @@ func TestSinArnesFalla(t *testing.T) {
 	}
 }
 
-func TestJSONSeFusionaYProductoGana(t *testing.T) {
+// TestJSONMergesAndProductWins comprueba la fusión profunda de JSON: producto gana y la salida es determinista.
+func TestJSONMergesAndProductWins(t *testing.T) {
 	dir := tree(t, map[string]string{
 		govSettings: `{"harness": ["claude-code"], "a": 1, "anidado": {"x": "gob", "y": "gob"}, "lista": [1, 2]}`,
 		".product-governance/config/settings.json": `{"b": 2, "anidado": {"y": "prod"}, "lista": [3]}`,
@@ -179,7 +190,8 @@ func TestJSONSeFusionaYProductoGana(t *testing.T) {
 	}
 }
 
-func TestJSONVacioCuentaComoObjetoVacio(t *testing.T) {
+// TestEmptyJSONCountsAsEmptyObject comprueba que un archivo JSON vacío cuenta como objeto vacío.
+func TestEmptyJSONCountsAsEmptyObject(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".product-governance/config/settings.json": "",
 	})
@@ -189,7 +201,8 @@ func TestJSONVacioCuentaComoObjetoVacio(t *testing.T) {
 	}
 }
 
-func TestJSONInvalidoFallaConRuta(t *testing.T) {
+// TestInvalidJSONFailsWithPath comprueba que un JSON inválido da error con la ruta del archivo fuente.
+func TestInvalidJSONFailsWithPath(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".product-governance/config/settings.json": `{"a": }`,
 	})
@@ -199,7 +212,8 @@ func TestJSONInvalidoFallaConRuta(t *testing.T) {
 	}
 }
 
-func TestSegundaEjecucionNoCambiaNadaYCheckPasa(t *testing.T) {
+// TestSecondRunChangesNothingAndCheckPasses comprueba que tras compilar, -check no encuentra diferencias.
+func TestSecondRunChangesNothingAndCheckPasses(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".aquas-governance/canon/x/rules.md":   "G",
 		".aquas-governance/skills/go/SKILL.md": "S",
@@ -212,7 +226,8 @@ func TestSegundaEjecucionNoCambiaNadaYCheckPasa(t *testing.T) {
 	}
 }
 
-func TestCheckDetectaDesactualizadoSinEscribir(t *testing.T) {
+// TestCheckDetectsStaleWithoutWriting comprueba que -check detecta un archivo viejo y no lo sobrescribe.
+func TestCheckDetectsStaleWithoutWriting(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".aquas-governance/canon/x/rules.md": "G",
 		".claude/rules/x/rules.md":           "viejo",
@@ -226,7 +241,8 @@ func TestCheckDetectaDesactualizadoSinEscribir(t *testing.T) {
 	}
 }
 
-func TestHuerfanoSoloEnCarpetasPropias(t *testing.T) {
+// TestOrphansOnlyInOwnedDirs comprueba que el aviso de huérfanos solo mira las carpetas del compilador y no borra.
+func TestOrphansOnlyInOwnedDirs(t *testing.T) {
 	dir := tree(t, map[string]string{
 		".aquas-governance/canon/x/rules.md": "G",
 		".claude/rules/viejo/rules.md":       "huérfano",
@@ -244,7 +260,8 @@ func TestHuerfanoSoloEnCarpetasPropias(t *testing.T) {
 	}
 }
 
-func TestRaizSinCapasFalla(t *testing.T) {
+// TestRootWithoutLayersFails comprueba que una raíz sin capas da error.
+func TestRootWithoutLayersFails(t *testing.T) {
 	if _, err := Run(t.TempDir(), false, &bytes.Buffer{}); err == nil {
 		t.Fatal("se esperaba error con una raíz vacía")
 	}

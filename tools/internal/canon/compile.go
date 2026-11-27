@@ -84,9 +84,8 @@ type output struct {
 // key identifica el archivo sin depender del arnés: «<tipo>/<rel>».
 func (o *output) key() string { return path.Join(string(o.kind), o.rel) }
 
-// Run compila todas las capas para cada arnés declarado en la configuración.
-// Con check no escribe nada. Devuelve stale = true si algún archivo del arnés
-// no coincide con lo compilado. Si algo no compila, no escribe ningún archivo.
+// Run compila las capas para cada arnés declarado; con check no escribe nada.
+// stale = true si algún archivo difiere; si algo no compila, no escribe ninguno.
 func Run(rootPath string, check bool, w io.Writer) (stale bool, err error) {
 	root, err := os.OpenRoot(rootPath)
 	if err != nil {
@@ -229,6 +228,7 @@ func (o *output) build() ([]byte, error) {
 	return nil, fmt.Errorf("%s: no sé combinar archivos %q de varias capas", o.key(), path.Ext(o.rel))
 }
 
+// layerNames devuelve las capas que aportan al archivo, en orden: «governance + product».
 func (o *output) layerNames() string {
 	names := make([]string, len(o.parts))
 	for i, p := range o.parts {
@@ -295,9 +295,8 @@ func normalizeText(data []byte) string {
 	return strings.TrimRight(s, " \t\n")
 }
 
-// mergeJSON fusiona objetos JSON en orden jerárquico.
-// Objetos anidados se fusionan clave por clave; cualquier otro valor
-// (texto, número, lista) de una capa posterior reemplaza al anterior.
+// mergeJSON fusiona los objetos JSON de las capas en orden jerárquico
+// y devuelve el resultado con formato estable.
 func mergeJSON(parts []part) ([]byte, error) {
 	merged := map[string]any{}
 	for _, p := range parts {
@@ -310,6 +309,8 @@ func mergeJSON(parts []part) ([]byte, error) {
 	return encodeObject(merged)
 }
 
+// deepMerge copia src sobre dst: los objetos anidados se unen clave por clave;
+// cualquier otro valor (texto, número, lista) de src reemplaza al de dst.
 func deepMerge(dst, src map[string]any) {
 	for k, sv := range src {
 		if sm, ok := sv.(map[string]any); ok {
@@ -322,9 +323,8 @@ func deepMerge(dst, src map[string]any) {
 	}
 }
 
-// orphans lista archivos de las carpetas del arnés que ninguna capa produce.
-// Solo mira esas carpetas: el resto del arnés (por ejemplo .claude/settings.json)
-// no es del compilador. No borra nada.
+// orphans lista, sin borrarlos, los archivos de las carpetas del compilador que
+// ninguna capa produce. El resto del arnés (p. ej. .claude/settings.json) no se mira.
 func orphans(root *os.Root, dirs map[kind]string, owned map[string]bool) []string {
 	var found []string
 	for _, dir := range slices.Sorted(maps.Values(dirs)) {
