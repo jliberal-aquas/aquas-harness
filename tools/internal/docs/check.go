@@ -257,11 +257,12 @@ func slugify(title string) string {
 
 // nodeRe encuentra definiciones de nodos Mermaid: id seguido de su forma.
 // Grupos: 1 id, 2 apertura, 3 etiqueta. Las formas largas van primero.
-var nodeRe = regexp.MustCompile(`(?:^|[\s;&>-])([A-Za-z0-9_]+)(\(\[|\[\[|\(\(|\{\{|\[|\(|\{)"?([^\]\)\}"]*)"?`)
+var nodeRe = regexp.MustCompile(`(?:^|[\s;&>-])([A-Za-z0-9_]+)(\(\[|\[\[|\(\(|\{\{|\[/|\[|\(|\{)"?([^\]\)\}"]*)"?`)
 
 // checkDiagrams exige que cada caja de proceso «[...]», «(...)» o «[[...]]» de
 // un diagrama tenga un enlace con su misma etiqueta en la lista que lo sigue.
-// Inicio y fin «([...])», decisiones «{...}» y círculos «((...))» no lo necesitan.
+// Inicio y fin «([...])», decisiones «{...}», círculos «((...))», datos «[/.../]»
+// y títulos de «subgraph» no lo necesitan.
 func checkDiagrams(page string, d doc) []Finding {
 	var out []Finding
 	for i := 0; i < len(d.lines); i++ {
@@ -274,7 +275,7 @@ func checkDiagrams(page string, d doc) []Finding {
 		j := i + 1
 		for ; j < len(d.lines) && d.lines[j].kind == mermaid; j++ {
 			t := strings.TrimSpace(d.lines[j].text)
-			if strings.HasPrefix(t, "click ") || strings.HasPrefix(t, "classDef ") || strings.HasPrefix(t, "class ") || strings.HasPrefix(t, "style ") {
+			if strings.HasPrefix(t, "click ") || strings.HasPrefix(t, "classDef ") || strings.HasPrefix(t, "class ") || strings.HasPrefix(t, "style ") || strings.HasPrefix(t, "subgraph ") {
 				continue
 			}
 			for _, m := range nodeRe.FindAllStringSubmatch(t, -1) {

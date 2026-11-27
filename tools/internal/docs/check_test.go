@@ -81,6 +81,15 @@ func TestCheck(t *testing.T) {
 			page: meta + "# T\n\n```mermaid\nflowchart TD\n  I([Inicio]) --> D{Decide} --> F((Fin))\n```\n",
 		},
 		{
+			name: "data boxes and subgraph titles need no link",
+			page: meta + "# T\n\n```mermaid\nflowchart TD\n  subgraph G[\"Gobierno\"]\n    direction LR\n    a1[/\"x: true\"/] --> c1[/x: false/]\n  end\n```\n",
+		},
+		{
+			name: "process box inside a subgraph still needs a link",
+			page: meta + "# T\n\n```mermaid\nflowchart TD\n  subgraph G[\"Gobierno\"]\n    a1[/x/] --> B[Leer]\n  end\n```\n",
+			want: []string{`la caja "Leer" no tiene enlace`},
+		},
+		{
 			name: "term first mention without link fails",
 			page: meta + "# T\n\nCada capa aporta. Ver [capa](../../GLOSSARY.md).\n",
 			want: []string{`primera mención de "Capa" sin enlace ni negrita`},

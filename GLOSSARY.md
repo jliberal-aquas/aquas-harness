@@ -55,7 +55,7 @@ El único ejemplo de principio a fin de una capacidad, ejecutado de verdad, que 
 _Avoid_: ejemplo end-to-end, caso de uso, demo
 
 **Unidad de explicación**:
-El orden fijo con que se explica cada proceso: pregunta, ejemplo, diagrama, nombre, causa y enlace a la siguiente página.
+El orden fijo de cada página de capacidad o proceso: lo que entra y lo que sale se muestran en diagramas antes de nombrar el mecanismo, y el detalle completo queda plegado al final.
 _Avoid_: plantilla de sección
 
 **Primera mención**:
