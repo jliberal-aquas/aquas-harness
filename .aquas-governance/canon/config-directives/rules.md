@@ -8,6 +8,7 @@ Uso: leer antes de ejecutar comandos o escribir rutas. Los valores son datos; no
 - root: carpeta raíz del proyecto. Base para resolver rutas relativas. Si la ruta contiene un espacio, ponerla siempre entre comillas.
 - product: carpeta del producto que se construye, dentro de root. Separa el producto de la infraestructura del proyecto.
 - harness: Arnés que ejecuta al agente: Claude Code, Pi, Codex, etc . Define qué herramientas existen y dónde se leen las instrucciones.
+- central_repo: `true` si este es el repositorio central del arnés; habilita escribir en todo el repositorio. `false` o ausente: instancia, solo `product/`.
 - installed_at: fecha y hora de instalación, en formato ISO 8601 y hora UTC.
 
 Reglas de uso

@@ -16,13 +16,13 @@
 7. Lo que pueda hacerse de forma determinista se hace de forma determinista. Junto con la economía de tokens, es la prioridad número uno.
 
 ## Alcance y seguridad
-8.  Lee donde haga falta. Escribe solo dentro de `product/`. Los temporales van en `product/.tmp/`. En una instancia la raíz no se edita (ADR 0003). Las rutas, el sistema operativo y el rol están en `.aquas-governance/config/aquas.install.json`; el repositorio central suma las excepciones de `canon/central/` (ADR 0004).
+8.  Lee donde haga falta. Dónde escribes lo fija `central_repo` en `.aquas-governance/config/settings.json`: con `true` (repositorio central) escribes en todo el repositorio; con `false` o ausente (instancia) escribes solo dentro de `product/`. Los temporales van en `product/.tmp/`. Las reglas 9 y 10 valen siempre.
 9.  No leas secretos: `.env`, llaves, tokens, credenciales.
 10. No publiques (tag, release, push) ni borres lo que no creaste sin orden del humano; git push lo corre siempre el humano.
+11. Los archivos de contexto (canon, reglas y skills) no citan ADR, p. ej. «(ADR 0001)». La decisión vive solo en su ADR, que no se carga en contexto salvo petición explícita del humano.
 
 # Reglas solo del repositorio central
 
-1. Además de `product/`, en el central puedes escribir en `canon/`, `docs/adr/` y `GLOSSARY.md`.
-2. Todo cambio en `canon/` obliga a recompilar los archivos del arnés antes del commit.
+1. Todo cambio en `canon/` obliga a recompilar los archivos del arnés antes del commit.
 
 # Constitución del producto

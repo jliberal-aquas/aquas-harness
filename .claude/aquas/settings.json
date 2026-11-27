@@ -1,5 +1,6 @@
 {
   "arch": "amd64",
+  "central_repo": true,
   "harness": [
     "claude-code"
   ],
