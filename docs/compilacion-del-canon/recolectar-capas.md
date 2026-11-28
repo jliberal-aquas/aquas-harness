@@ -16,7 +16,7 @@ flowchart LR
   B -.-> T[Unir texto]
   B -.-> J[Fusionar JSON]
   B -.-> K[Copiar intacto]
-  style A fill:#ffd54f,stroke:#333,stroke-width:3px
+  style A fill:#ffd54f,stroke:#333,stroke-width:3px,color:#000
 ```
 
 - [Recolectar capas](recolectar-capas.md): esta página.
@@ -73,9 +73,9 @@ flowchart TD
     a4[/"empieza con punto"/] -. fuera .-> c4[/"ningún grupo"/]
   end
   K1 ~~~ K2 ~~~ K3 ~~~ K4
-  style c1 fill:#ffd54f
-  style c2 fill:#ffd54f
-  style c3 fill:#ffd54f
+  style c1 fill:#ffd54f,color:#000
+  style c2 fill:#ffd54f,color:#000
+  style c3 fill:#ffd54f,color:#000
 ```
 
 En el paso 1 del caso conductor, la salida `(governance + product)` nombra justo esos aportes, en ese orden.

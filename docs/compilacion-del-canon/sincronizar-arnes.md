@@ -17,7 +17,7 @@ flowchart LR
   B -.-> T[Unir texto]
   B -.-> J[Fusionar JSON]
   B -.-> K[Copiar intacto]
-  style D fill:#ffd54f,stroke:#333,stroke-width:3px
+  style D fill:#ffd54f,stroke:#333,stroke-width:3px,color:#000
 ```
 
 - [Recolectar capas](recolectar-capas.md): arma los grupos.
@@ -68,9 +68,9 @@ flowchart TD
     a3[/"viejo.md"/] --> c3[/"aviso: no viene de ninguna capa"/]
   end
   S1 ~~~ S2 ~~~ S3
-  style c1 fill:#ffd54f
-  style c2 fill:#ffd54f
-  style c3 fill:#ffd54f
+  style c1 fill:#ffd54f,color:#000
+  style c2 fill:#ffd54f,color:#000
+  style c3 fill:#ffd54f,color:#000
 ```
 
 Salida real del paso 4:

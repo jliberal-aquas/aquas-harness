@@ -17,7 +17,7 @@ flowchart LR
   B -.-> T[Unir texto]
   B -.-> J[Fusionar JSON]
   B -.-> K[Copiar intacto]
-  style J fill:#ffd54f,stroke:#333,stroke-width:3px
+  style J fill:#ffd54f,stroke:#333,stroke-width:3px,color:#000
 ```
 
 - [Recolectar capas](recolectar-capas.md): arma los grupos.
@@ -75,10 +75,10 @@ flowchart TD
     a4[/"Gobierno<br/>powershell<br/>[claude-code]"/] --> c4[/"Resultado<br/>powershell<br/>[claude-code]"/]
   end
   K1 ~~~ K2 ~~~ K3 ~~~ K4
-  style c1 fill:#ffd54f
-  style c2 fill:#ffd54f
-  style c3 fill:#ffd54f
-  style c4 fill:#ffd54f
+  style c1 fill:#ffd54f,color:#000
+  style c2 fill:#ffd54f,color:#000
+  style c3 fill:#ffd54f,color:#000
+  style c4 fill:#ffd54f,color:#000
 ```
 
 El producto gana porque va después. La excepción es `paths`: es un objeto en las dos capas, así que se mezcla por dentro y `root` se conserva. Archivo real del paso 1:

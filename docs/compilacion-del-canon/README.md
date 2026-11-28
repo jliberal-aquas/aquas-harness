@@ -72,9 +72,9 @@ flowchart TD
     a3[/"Gobierno<br/>saludo/SKILL.md"/] --> c3[/".claude/skills/saludo/SKILL.md<br/>byte por byte"/]
   end
   K1 ~~~ K2 ~~~ K3
-  style c1 fill:#ffd54f
-  style c2 fill:#ffd54f
-  style c3 fill:#ffd54f
+  style c1 fill:#ffd54f,color:#000
+  style c2 fill:#ffd54f,color:#000
+  style c3 fill:#ffd54f,color:#000
 ```
 
 El producto escribe después que el gobierno; por eso, donde chocan, tiene la palabra final. Ejecución real del 2026-11-27, con el código del commit `018d405`:

@@ -99,7 +99,7 @@ Cada tipo responde una sola pregunta y la oración anterior dice qué muestra:
 
 | Tipo | Pregunta | Forma |
 |---|---|---|
-| Mapa | ¿Dónde estoy? | `flowchart LR` en fila; la caja actual con `style X fill:#ffd54f,stroke:#333,stroke-width:3px` |
+| Mapa | ¿Dónde estoy? | `flowchart LR` en fila; la caja actual con `style X fill:#ffd54f,stroke:#333,stroke-width:3px,color:#000` |
 | Entrada | ¿Qué llega? | `flowchart LR` con un `subgraph` por capa u origen, cada uno con `direction TB` y sus datos `[/.../]` encadenados con `~~~`; subgrafos unidos con `G ~~~ P` para fijar el orden. Si cada subgrafo tiene un solo dato, `flowchart TD` |
 | Resultado | ¿Qué le pasa? | `flowchart TD` con un `subgraph` por caso, cada uno con `direction LR`, apilados con `~~~`; flechas `== gana ==>` y `-. pierde .->`; el resultado resaltado |
 | Recorrido | ¿En qué orden? | `flowchart TD`; solo en el detalle |

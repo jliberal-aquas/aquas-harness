@@ -16,7 +16,7 @@ flowchart LR
   B -.-> T[Unir texto]
   B -.-> J[Fusionar JSON]
   B -.-> K[Copiar intacto]
-  style T fill:#ffd54f,stroke:#333,stroke-width:3px
+  style T fill:#ffd54f,stroke:#333,stroke-width:3px,color:#000
 ```
 
 - [Recolectar capas](recolectar-capas.md): arma los grupos.
@@ -65,9 +65,9 @@ flowchart TD
     b[/"BOM y saltos CRLF"/] -- limpia --> c3[/"sin BOM, saltos LF"/]
   end
   R1 ~~~ R2 ~~~ R3
-  style c1 fill:#ffd54f
-  style c2 fill:#ffd54f
-  style c3 fill:#ffd54f
+  style c1 fill:#ffd54f,color:#000
+  style c2 fill:#ffd54f,color:#000
+  style c3 fill:#ffd54f,color:#000
 ```
 
 Archivo real del paso 1, `.claude/rules/human-communication/rules.md`:

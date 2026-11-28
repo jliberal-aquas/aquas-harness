@@ -17,7 +17,7 @@ flowchart LR
   B -.-> T[Unir texto]
   B -.-> J[Fusionar JSON]
   B -.-> K[Copiar intacto]
-  style C fill:#ffd54f,stroke:#333,stroke-width:3px
+  style C fill:#ffd54f,stroke:#333,stroke-width:3px,color:#000
 ```
 
 - [Recolectar capas](recolectar-capas.md): arma los grupos.
@@ -63,9 +63,9 @@ flowchart TD
     a3[/"skills/..."/] --> c3[/".claude/skills/..."/]
   end
   R1 ~~~ R2 ~~~ R3
-  style c1 fill:#ffd54f
-  style c2 fill:#ffd54f
-  style c3 fill:#ffd54f
+  style c1 fill:#ffd54f,color:#000
+  style c2 fill:#ffd54f,color:#000
+  style c3 fill:#ffd54f,color:#000
 ```
 
 La configuración va a `.claude/aquas/` y no a `.claude/settings.json`, porque ese archivo es la configuración propia de Claude Code y `canonc` no lo toca.
